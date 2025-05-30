@@ -1,0 +1,9 @@
+@"
+build/
+.dart_tool/
+android/app/build/
+*.apk
+*.aab
+*.dill
+*.bin
+"@ > .gitignore

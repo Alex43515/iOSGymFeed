@@ -1,0 +1,2 @@
+C:/Users/aleks/Desktop/gym_feed (12)/gym_feed (1)/gym_feed/android/app/.cxx/Debug/3m1i2m19/x86/CMakeFiles/edit_cache.dir
+C:/Users/aleks/Desktop/gym_feed (12)/gym_feed (1)/gym_feed/android/app/.cxx/Debug/3m1i2m19/x86/CMakeFiles/rebuild_cache.dir
