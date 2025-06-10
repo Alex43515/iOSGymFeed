@@ -1,3 +1,7 @@
+#-----------------------------------------------------------
+# ios/Podfile  —  fully fixed for Codemagic iOS build
+#-----------------------------------------------------------
+
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -7,54 +11,35 @@ project 'Runner', {
   'Release' => :release,
 }
 
+# Locate FLUTTER_ROOT from Generated.xcconfig
 def flutter_root
   generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  raise "#{generated} missing; run flutter pub get first" unless File.exist?(generated)
+  raise "#{generated} missing; run flutter pub get" unless File.exist?(generated)
 
   File.foreach(generated) do |line|
     m = line.match(/FLUTTER_ROOT\=(.*)/)
     return m[1].strip if m
   end
-  raise 'FLUTTER_ROOT not found in Generated.xcconfig'
+  raise 'FLUTTER_ROOT not found'
 end
 
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
+# -------- Main app target ---------------------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Firestore binary framework
   pod 'FirebaseFirestore',
       :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
       :tag => '11.4.0'
 end
 
-# ----------- Post-install fixes -----------
-post_install do |installer|
-  installer.pods_project.targets.each do |t|
-    flutter_additional_ios_build_settings(t)
-    t.build_configurations.each do |c|
-      c.build_settings['SWIFT_VERSION'] = '5.0'
-      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-    end
-  end
-
-  # Patch RevenueCat SubscriptionPeriod name clash
-  rc_file = File.join(
-    installer.sandbox_root,
-    'Pods', 'PurchasesHybridCommon', 'ios', 'PurchasesHybridCommon',
-    'PurchasesHybridCommon', 'StoreProduct+HybridAdditions.swift'
-  )
-  if File.exist?(rc_file)
-    txt   = File.read(rc_file)
-    fixed = txt.gsub('SubscriptionPeriod', 'RevenueCat.SubscriptionPeriod')
-    File.write(rc_file, fixed)
-  end
-end
-
-# -------- Notification extension ----------
+# -------- Notification Service Extension ------------------
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -62,4 +47,29 @@ target 'ImageNotification' do
   pod 'Firebase/Messaging'
   pod 'GoogleUtilities'
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+
+# -------- Post-install patch + build settings -------------
+post_install do |installer|
+  # Global Swift & deployment target
+  installer.pods_project.targets.each do |t|
+    flutter_additional_ios_build_settings(t)
+    t.build_configurations.each do |c|
+      c.build_settings['SWIFT_VERSION']              = '5.0'
+      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+    end
+  end
+
+  # Patch RevenueCat name clash (SubscriptionPeriod)
+  pods_root   = installer.sandbox.root       # CocoaPods ≥1.16
+  rc_swift    = File.join(
+    pods_root,
+    'PurchasesHybridCommon', 'ios', 'PurchasesHybridCommon',
+    'PurchasesHybridCommon', 'StoreProduct+HybridAdditions.swift'
+  )
+  if File.exist?(rc_swift)
+    src  = File.read(rc_swift)
+    patched = src.gsub(/\bSubscriptionPeriod\b/, 'RevenueCat.SubscriptionPeriod')
+    File.write(rc_swift, patched)
+  end
 end
