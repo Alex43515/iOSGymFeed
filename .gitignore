@@ -1,9 +1,16 @@
-@"
+# Flutter build outputs
 build/
-.dart_tool/
 android/app/build/
+
+# Dart tools
+.dart_tool/
+
+# Generated plugin files
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Output artifacts
 *.apk
 *.aab
 *.dill
 *.bin
-"@ > .gitignore
