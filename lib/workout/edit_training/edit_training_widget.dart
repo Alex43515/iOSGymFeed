@@ -11,6 +11,7 @@ import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/upload_data.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/index.dart';
+import '../../api_keys.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'edit_training_model.dart';
@@ -1165,11 +1166,11 @@ class _EditTrainingWidgetState extends State<EditTrainingWidget>
                                                             children: [
                                                               FlutterFlowPlacePicker(
                                                                 iOSGoogleMapsApiKey:
-                                                                    'AIzaSyAhiNjvBpWvH1VVuoRGU5J3WnjVPFIzkE4',
+                                                                    ApiKeys.iosGoogleMapsApiKey,
                                                                 androidGoogleMapsApiKey:
-                                                                    'AIzaSyD60h9pruOAaVuyPzjCD5Cg3fxemawEUpg',
+                                                                    ApiKeys.androidGoogleMapsApiKey,
                                                                 webGoogleMapsApiKey:
-                                                                    'AIzaSyBaAKbRwjQpBxUxfa46HZYGwxPTwpXqy4g',
+                                                                    ApiKeys.webGoogleMapsApiKey,
                                                                 onSelect:
                                                                     (place) async {
                                                                   safeSetState(() =>

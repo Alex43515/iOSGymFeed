@@ -18,6 +18,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'schedule_training_model.dart';
+import '../../api_keys.dart';
 export 'schedule_training_model.dart';
 
 class ScheduleTrainingWidget extends StatefulWidget {
@@ -411,11 +412,11 @@ class _ScheduleTrainingWidgetState extends State<ScheduleTrainingWidget>
                                                         children: [
                                                           FlutterFlowPlacePicker(
                                                             iOSGoogleMapsApiKey:
-                                                                'AIzaSyAhiNjvBpWvH1VVuoRGU5J3WnjVPFIzkE4',
+                                                                ApiKeys.iosGoogleMapsApiKey,
                                                             androidGoogleMapsApiKey:
-                                                                'AIzaSyD60h9pruOAaVuyPzjCD5Cg3fxemawEUpg',
+                                                                ApiKeys.androidGoogleMapsApiKey,
                                                             webGoogleMapsApiKey:
-                                                                'AIzaSyBaAKbRwjQpBxUxfa46HZYGwxPTwpXqy4g',
+                                                                ApiKeys.webGoogleMapsApiKey,
                                                             onSelect:
                                                                 (place) async {
                                                               safeSetState(() =>

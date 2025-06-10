@@ -5,6 +5,7 @@ import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import '/index.dart';
+import '../../../api_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
@@ -434,11 +435,11 @@ class _EditPostWidgetState extends State<EditPostWidget> {
                   padding: EdgeInsetsDirectional.fromSTEB(15.0, 0.0, 0.0, 0.0),
                   child: FlutterFlowPlacePicker(
                     iOSGoogleMapsApiKey:
-                        'AIzaSyAhiNjvBpWvH1VVuoRGU5J3WnjVPFIzkE4',
+                        ApiKeys.iosGoogleMapsApiKey,
                     androidGoogleMapsApiKey:
-                        'AIzaSyD60h9pruOAaVuyPzjCD5Cg3fxemawEUpg',
+                        ApiKeys.androidGoogleMapsApiKey,
                     webGoogleMapsApiKey:
-                        'AIzaSyBaAKbRwjQpBxUxfa46HZYGwxPTwpXqy4g',
+                        ApiKeys.webGoogleMapsApiKey,
                     onSelect: (place) async {
                       safeSetState(() => _model.placePickerValue = place);
                     },
