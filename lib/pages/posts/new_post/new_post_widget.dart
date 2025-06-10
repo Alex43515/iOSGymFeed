@@ -15,6 +15,7 @@ import 'dart:async';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
+import '../../../api_keys.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -745,11 +746,11 @@ class _NewPostWidgetState extends State<NewPostWidget>
                                                     child:
                                                         FlutterFlowPlacePicker(
                                                       iOSGoogleMapsApiKey:
-                                                          'AIzaSyAhiNjvBpWvH1VVuoRGU5J3WnjVPFIzkE4',
+                                                          ApiKeys.iosGoogleMapsApiKey,
                                                       androidGoogleMapsApiKey:
-                                                          'AIzaSyD60h9pruOAaVuyPzjCD5Cg3fxemawEUpg',
+                                                          ApiKeys.androidGoogleMapsApiKey,
                                                       webGoogleMapsApiKey:
-                                                          'AIzaSyBaAKbRwjQpBxUxfa46HZYGwxPTwpXqy4g',
+                                                          ApiKeys.webGoogleMapsApiKey,
                                                       onSelect: (place) async {
                                                         safeSetState(() => _model
                                                                 .placePickerValue =

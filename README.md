@@ -32,4 +32,3 @@ This project is a small Flutter application used for testing Codemagic builds.
    flutter build ios --release
    ```
    On Codemagic, make sure `flutter pub get` is executed before running `pod install`.
-
