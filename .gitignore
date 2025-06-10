@@ -1,3 +1,20 @@
+# Flutter build outputs
+build/
+android/app/build/
+
+# Dart tools
+.dart_tool/
+
+# Generated plugin files
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Output artifacts
+*.apk
+*.aab
+*.dill
+*.bin
+=======
 # Miscellaneous
 *.class
 *.log
@@ -43,3 +60,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Dart tools
+.dart_tool/
+
+# Generated plugin files
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Output artifacts
