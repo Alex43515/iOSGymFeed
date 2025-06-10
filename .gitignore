@@ -1,4 +1,3 @@
-@"
 build/
 .dart_tool/
 android/app/build/
@@ -6,4 +5,4 @@ android/app/build/
 *.aab
 *.dill
 *.bin
-"@ > .gitignore
+lib/api_keys.dart

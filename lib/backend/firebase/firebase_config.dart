@@ -1,11 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import '../api_keys.dart';
 
 Future initFirebase() async {
   if (kIsWeb) {
     await Firebase.initializeApp(
         options: FirebaseOptions(
-            apiKey: "AIzaSyDda3SdKa-AQaqscTdDUdWpc0LifQRMamg",
+            apiKey: ApiKeys.firebaseApiKey,
             authDomain: "gym-feed-official-27tdk3.firebaseapp.com",
             projectId: "gym-feed-official-27tdk3",
             storageBucket: "gym-feed-official-27tdk3.appspot.com",
