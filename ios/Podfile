@@ -34,13 +34,31 @@ target 'ImageNotification' do
   pod 'GoogleUtilities'
 end
 
-# ---- POST-INSTALL (only set Swift & deployment) -------------------
 post_install do |installer|
+  require 'plist'
+  require 'xcodeproj'
+
+  # 1. All POD targets: Swift 5 + deployment target
   installer.pods_project.targets.each do |t|
+    flutter_additional_ios_build_settings(t)
     t.build_configurations.each do |c|
       c.build_settings['SWIFT_VERSION']              = '5.0'
       c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
     end
   end
-end
+
+  # 2. Aggregated targets (Runner & ImageNotification) need the same
+  installer.aggregate_targets.each do |agg|
+    flutter_additional_ios_build_settings(agg)  # <<—— ADD THIS LINE
+
+    agg.user_project.native_targets.each do |nt|
+      next unless %w[Runner ImageNotification].include?(nt.name)
+      nt.build_configurations.each do |cfg|
+        cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        cfg.build_settings['TARGETED_DEVICE_FAMILY']     = '1,2'
+      end
+    end
+    agg.user_project.save
+  end
+
 # ------------------------------------------------------------------
