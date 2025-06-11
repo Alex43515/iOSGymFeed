@@ -7,6 +7,7 @@ project 'Runner', {
   'Release' => :release,
 }
 
+# ---------- FLUTTER ROOT ------------------------------------------
 def flutter_root
   generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
   abort 'Run flutter pub get first.' unless File.exist?(generated)
@@ -15,9 +16,16 @@ end
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# -------- Main Flutter app target ---------------------------------
+# ---------- PRE-INSTALL: force Flutter pod to dynamic framework ----
+pre_install do |installer|
+  installer.pod_targets.each do |pod|
+    pod.build_type = Pod::BuildType.dynamic_framework if pod.name == 'Flutter'
+  end
+end
+
+# ---------- MAIN FLUTTER APP TARGET -------------------------------
 target 'Runner' do
-  use_frameworks!        # <— dynamic frameworks
+  use_frameworks!                 # dynamic
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -27,32 +35,31 @@ target 'Runner' do
       :tag => '11.4.0'
 end
 
-# -------- Notification Service Extension --------------------------
+# ---------- NOTIFICATION EXTENSION --------------------------------
 target 'ImageNotification' do
-  use_frameworks!         # <— dynamic frameworks
+  use_frameworks!                 # dynamic
   use_modular_headers!
 
   pod 'Firebase/Messaging'
   pod 'GoogleUtilities'
 end
 
-# -------- Post-install: Swift & deployment target -----------------
+# ---------- POST-INSTALL FIXES ------------------------------------
 post_install do |installer|
-  # 1. Pods targets: Swift & deployment + add Flutter headers
+  # 1) Pod targets: Swift / deployment + search path
   installer.pods_project.targets.each do |t|
     t.build_configurations.each do |c|
       c.build_settings['SWIFT_VERSION']              = '5.0'
       c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-
-      # --- ⬇︎ ADD THESE TWO LINES ⬇︎ ---
       headers = c.build_settings['HEADER_SEARCH_PATHS'] || ['$(inherited)']
-      headers << '"${PODS_ROOT}/Flutter/engine"' unless headers.include?('"${PODS_ROOT}/Flutter/engine"')
+      unless headers.include?('"${PODS_ROOT}/Flutter/engine"')
+        headers << '"${PODS_ROOT}/Flutter/engine"'
+      end
       c.build_settings['HEADER_SEARCH_PATHS'] = headers
-      # --- ⬆︎ ADD THESE TWO LINES ⬆︎ ---
     end
   end
 
-  # 2. User targets (Runner, ImageNotification) stay the same …
+  # 2) User project targets
   installer.aggregate_targets.each do |agg|
     agg.user_project.native_targets.each do |nt|
       next unless %w[Runner ImageNotification].include?(nt.name)
@@ -64,3 +71,4 @@ post_install do |installer|
     agg.user_project.save
   end
 end
+# ------------------------------------------------------------------
