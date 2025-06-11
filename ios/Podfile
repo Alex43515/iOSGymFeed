@@ -1,4 +1,3 @@
-# --------------------- ios/Podfile ---------------------
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -8,41 +7,38 @@ project 'Runner', {
   'Release' => :release,
 }
 
-# ---- Locate FLUTTER_ROOT --------------------------------
 def flutter_root
-  cfg = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  abort 'Run "flutter pub get" first.' unless File.exist?(cfg)
-  File.foreach(cfg) { |l| return $1.strip if l =~ /FLUTTER_ROOT=(.*)/ }
+  generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  abort 'Run flutter pub get first.' unless File.exist?(generated)
+  File.foreach(generated) { |l| return $1.strip if l =~ /FLUTTER_ROOT=(.*)/ }
 end
-
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# ---- Main Flutter target --------------------------------
+# -------- Main Flutter app target ---------------------------------
 target 'Runner' do
-  use_frameworks! :linkage => :static
+  use_frameworks! :linkage => :framework      # <— dynamic frameworks
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
-  # Example native pod
   pod 'FirebaseFirestore',
       :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
       :tag => '11.4.0'
 end
 
-# ---- Notification Service Extension ---------------------
+# -------- Notification Service Extension --------------------------
 target 'ImageNotification' do
-  use_frameworks! :linkage => :static
+  use_frameworks! :linkage => :framework      # <— dynamic frameworks
   use_modular_headers!
 
   pod 'Firebase/Messaging'
   pod 'GoogleUtilities'
 end
 
-# ---- Post-install: Swift & deployment target -------------
+# -------- Post-install: Swift & deployment target -----------------
 post_install do |installer|
-  # A) every Pods target
+  # Pods targets
   installer.pods_project.targets.each do |t|
     t.build_configurations.each do |c|
       c.build_settings['SWIFT_VERSION']              = '5.0'
@@ -50,7 +46,7 @@ post_install do |installer|
     end
   end
 
-  # B) user targets (Runner, ImageNotification)
+  # User targets
   installer.aggregate_targets.each do |agg|
     agg.user_project.native_targets.each do |nt|
       next unless %w[Runner ImageNotification].include?(nt.name)
@@ -62,4 +58,3 @@ post_install do |installer|
     agg.user_project.save
   end
 end
-# ---------------------------------------------------------
