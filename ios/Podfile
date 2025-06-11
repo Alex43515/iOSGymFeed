@@ -1,3 +1,4 @@
+# ios/Podfile  – final version fixing “Target Device Version”
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -17,17 +18,18 @@ end
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# -------- Runner (main Flutter app) ------------------------
+# -------------------- Main Flutter app --------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
   pod 'FirebaseFirestore',
       :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
       :tag => '11.4.0'
 end
 
-# -------- Notification Service Extension -------------------
+# -------------------- Notification extension --------------
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -35,9 +37,9 @@ target 'ImageNotification' do
   pod 'GoogleUtilities'
 end
 
-# -------- Post-install fixes --------------------------------
+# -------------------- Post-install fixes ------------------
 post_install do |installer|
-  # 1) Apply to all POD targets
+  # 1) All POD targets
   installer.pods_project.targets.each do |t|
     flutter_additional_ios_build_settings(t)
     t.build_configurations.each do |c|
@@ -46,13 +48,15 @@ post_install do |installer|
     end
   end
 
-  # 2) Apply to USER targets (Runner, ImageNotification)
+  # 2) All USER targets (Runner + extension)
   installer.aggregate_targets.each do |agg|
     agg.user_project.targets.each do |t|
       t.build_configurations.each do |c|
         c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        c.build_settings['TARGETED_DEVICE_FAMILY']     = '1,2'  # iPhone & iPad
       end
     end
+    # must save to persist changes
     agg.user_project.save
   end
 
