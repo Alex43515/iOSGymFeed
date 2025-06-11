@@ -1,4 +1,4 @@
-# ----------------------- ios/Podfile -----------------------
+# ------------------ ios/Podfile  (minimal, valid) ------------------
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -8,29 +8,24 @@ project 'Runner', {
   'Release' => :release,
 }
 
+# ---- FLUTTER ROOT -------------------------------------------------
 def flutter_root
   generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  raise "#{generated} missing; run flutter pub get" unless File.exist?(generated)
+  abort 'Run "flutter pub get" first' unless File.exist?(generated)
   File.foreach(generated) { |l| return $1.strip if l =~ /FLUTTER_ROOT=(.*)/ }
-  raise 'FLUTTER_ROOT not found'
 end
-
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# -------- Main Flutter target --------------------------------------
+# ---- MAIN APP TARGET ---------------------------------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-
-  pod 'FirebaseFirestore',
-      :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
-      :tag => '11.4.0'
 end
 
-# -------- Notification Service Extension ---------------------------
+# ---- NOTIFICATION EXTENSION --------------------------------------
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -39,57 +34,13 @@ target 'ImageNotification' do
   pod 'GoogleUtilities'
 end
 
-# -------- Post-install fixes ---------------------------------------
+# ---- POST-INSTALL (only set Swift & deployment) -------------------
 post_install do |installer|
-  require 'xcodeproj'
-  installer.aggregate_targets.each do |agg|
-    agg.user_project.targets.each do |t|
-      t.build_configurations.each do |c|
-        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-      end
+  installer.pods_project.targets.each do |t|
+    t.build_configurations.each do |c|
+      c.build_settings['SWIFT_VERSION']              = '5.0'
+      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
     end
-    agg.user_project.save
-  end
-  # also fix every generated xcconfig so debug inherits 14.0
-  Dir.glob(File.join(__dir__, '..', 'Flutter', '*.xcconfig')).each do |f|
-    txt = File.read(f)
-    next if txt.include? 'IPHONEOS_DEPLOYMENT_TARGET'
-    File.open(f, 'a') { |io| io.puts "\nIPHONEOS_DEPLOYMENT_TARGET=14.0" }
   end
 end
-
-  # 2. User targets: Runner + ImageNotification
-  installer.aggregate_targets.each do |agg|
-    agg.user_project.native_targets.each do |nt|
-      next unless %w[Runner ImageNotification].include?(nt.name)
-      nt.build_configurations.each do |cfg|
-        cfg.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-        cfg.build_settings['TARGETED_DEVICE_FAMILY']     = '1,2'
-      end
-    end
-    agg.user_project.save
-  end
-
-  # 3. Edit Info.plists to inject MinimumOSVersion & UIDeviceFamily
-  require 'plist'
-  %w[Runner ImageNotification].each do |target_name|
-    plist_path = File.join(__dir__, target_name, 'Info.plist')
-    next unless File.exist?(plist_path)
-    data = Plist.parse_xml(plist_path) || {}
-    data['MinimumOSVersion'] = '14.0'
-    data['UIDeviceFamily']   = [1, 2]
-    File.write(plist_path, Plist::Emit.dump(data))
-  end
-
-  # 4. Patch RevenueCat SubscriptionPeriod clash
-  rc_file = File.join(
-    installer.sandbox.root,
-    'PurchasesHybridCommon', 'ios', 'PurchasesHybridCommon',
-    'PurchasesHybridCommon', 'StoreProduct+HybridAdditions.swift'
-  )
-  if File.exist?(rc_file)
-    txt = File.read(rc_file)
-    File.write(rc_file, txt.gsub(/\bSubscriptionPeriod\b/, 'RevenueCat.SubscriptionPeriod'))
-  end
-end
-# --------------------------------------------------------------
+# ------------------------------------------------------------------
