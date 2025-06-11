@@ -1,7 +1,4 @@
-#-----------------------------------------------------------
-# ios/Podfile  —  fully fixed for Codemagic iOS build
-#-----------------------------------------------------------
-
+# --------------------------- ios/Podfile ---------------------------
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -26,11 +23,12 @@ end
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# -------- Main app target ---------------------------------
+# -------- Main Flutter app target ---------------------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
+  # All Flutter plugins
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   # Firestore binary framework
@@ -39,19 +37,19 @@ target 'Runner' do
       :tag => '11.4.0'
 end
 
-# -------- Notification Service Extension ------------------
+# -------- Notification Service Extension (no Flutter plugins) -----
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
+  # Only what the extension actually needs
   pod 'Firebase/Messaging'
   pod 'GoogleUtilities'
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
-# -------- Post-install patch + build settings -------------
+# -------- Post-install: global build settings + RevenueCat patch --
 post_install do |installer|
-  # Global Swift & deployment target
+  # Swift / deployment settings for every pod target
   installer.pods_project.targets.each do |t|
     flutter_additional_ios_build_settings(t)
     t.build_configurations.each do |c|
@@ -60,16 +58,17 @@ post_install do |installer|
     end
   end
 
-  # Patch RevenueCat name clash (SubscriptionPeriod)
-  pods_root   = installer.sandbox.root       # CocoaPods ≥1.16
+  # Patch RevenueCat SubscriptionPeriod clash
+  pods_root   = installer.sandbox.root
   rc_swift    = File.join(
     pods_root,
     'PurchasesHybridCommon', 'ios', 'PurchasesHybridCommon',
     'PurchasesHybridCommon', 'StoreProduct+HybridAdditions.swift'
   )
   if File.exist?(rc_swift)
-    src  = File.read(rc_swift)
+    src    = File.read(rc_swift)
     patched = src.gsub(/\bSubscriptionPeriod\b/, 'RevenueCat.SubscriptionPeriod')
     File.write(rc_swift, patched)
   end
 end
+# ------------------------------------------------------------------
