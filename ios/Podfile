@@ -38,15 +38,21 @@ end
 
 # -------- Post-install: Swift & deployment target -----------------
 post_install do |installer|
-  # Pods targets
+  # 1. Pods targets: Swift & deployment + add Flutter headers
   installer.pods_project.targets.each do |t|
     t.build_configurations.each do |c|
       c.build_settings['SWIFT_VERSION']              = '5.0'
       c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+
+      # --- ⬇︎ ADD THESE TWO LINES ⬇︎ ---
+      headers = c.build_settings['HEADER_SEARCH_PATHS'] || ['$(inherited)']
+      headers << '"${PODS_ROOT}/Flutter/engine"' unless headers.include?('"${PODS_ROOT}/Flutter/engine"')
+      c.build_settings['HEADER_SEARCH_PATHS'] = headers
+      # --- ⬆︎ ADD THESE TWO LINES ⬆︎ ---
     end
   end
 
-  # User targets
+  # 2. User targets (Runner, ImageNotification) stay the same …
   installer.aggregate_targets.each do |agg|
     agg.user_project.native_targets.each do |nt|
       next unless %w[Runner ImageNotification].include?(nt.name)
