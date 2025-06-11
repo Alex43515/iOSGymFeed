@@ -1,4 +1,4 @@
-# ------------------ ios/Podfile  (minimal, valid) ------------------
+# --------------------- ios/Podfile ---------------------
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -8,24 +8,30 @@ project 'Runner', {
   'Release' => :release,
 }
 
-# ---- FLUTTER ROOT -------------------------------------------------
+# ---- Locate FLUTTER_ROOT --------------------------------
 def flutter_root
-  generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  abort 'Run "flutter pub get" first' unless File.exist?(generated)
-  File.foreach(generated) { |l| return $1.strip if l =~ /FLUTTER_ROOT=(.*)/ }
+  cfg = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  abort 'Run "flutter pub get" first.' unless File.exist?(cfg)
+  File.foreach(cfg) { |l| return $1.strip if l =~ /FLUTTER_ROOT=(.*)/ }
 end
+
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# ---- MAIN APP TARGET ---------------------------------------------
+# ---- Main Flutter target --------------------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Example native pod
+  pod 'FirebaseFirestore',
+      :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
+      :tag => '11.4.0'
 end
 
-# ---- NOTIFICATION EXTENSION --------------------------------------
+# ---- Notification Service Extension ---------------------
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -34,23 +40,18 @@ target 'ImageNotification' do
   pod 'GoogleUtilities'
 end
 
+# ---- Post-install: Swift & deployment target -------------
 post_install do |installer|
-  require 'plist'
-  require 'xcodeproj'
-
-  # 1. All POD targets: Swift 5 + deployment target
+  # A) every Pods target
   installer.pods_project.targets.each do |t|
-    flutter_additional_ios_build_settings(t)
     t.build_configurations.each do |c|
       c.build_settings['SWIFT_VERSION']              = '5.0'
       c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
     end
   end
 
-  # 2. Aggregated targets (Runner & ImageNotification) need the same
+  # B) user targets (Runner, ImageNotification)
   installer.aggregate_targets.each do |agg|
-    flutter_additional_ios_build_settings(agg)  # <<—— ADD THIS LINE
-
     agg.user_project.native_targets.each do |nt|
       next unless %w[Runner ImageNotification].include?(nt.name)
       nt.build_configurations.each do |cfg|
@@ -60,5 +61,5 @@ post_install do |installer|
     end
     agg.user_project.save
   end
-
-# ------------------------------------------------------------------
+end
+# ---------------------------------------------------------
