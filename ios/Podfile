@@ -41,14 +41,22 @@ end
 
 # -------- Post-install fixes ---------------------------------------
 post_install do |installer|
-  # 1. Pods targets: Swift ver & deployment
-  installer.pods_project.targets.each do |t|
-    flutter_additional_ios_build_settings(t)
-    t.build_configurations.each do |c|
-      c.build_settings['SWIFT_VERSION']              = '5.0'
-      c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+  require 'xcodeproj'
+  installer.aggregate_targets.each do |agg|
+    agg.user_project.targets.each do |t|
+      t.build_configurations.each do |c|
+        c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      end
     end
+    agg.user_project.save
   end
+  # also fix every generated xcconfig so debug inherits 14.0
+  Dir.glob(File.join(__dir__, '..', 'Flutter', '*.xcconfig')).each do |f|
+    txt = File.read(f)
+    next if txt.include? 'IPHONEOS_DEPLOYMENT_TARGET'
+    File.open(f, 'a') { |io| io.puts "\nIPHONEOS_DEPLOYMENT_TARGET=14.0" }
+  end
+end
 
   # 2. User targets: Runner + ImageNotification
   installer.aggregate_targets.each do |agg|
