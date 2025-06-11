@@ -1,4 +1,4 @@
-# ios/Podfile  – final version fixing “Target Device Version”
+# ---------- ios/Podfile (plain ASCII) -------------------------------
 platform :ios, '14.0'
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -8,6 +8,7 @@ project 'Runner', {
   'Release' => :release,
 }
 
+# --- Locate FLUTTER_ROOT --------------------------------------------
 def flutter_root
   generated = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
   raise "#{generated} missing; run flutter pub get" unless File.exist?(generated)
@@ -18,10 +19,11 @@ end
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
 flutter_ios_podfile_setup
 
-# -------------------- Main Flutter app --------------------
+# ---------------- Main Flutter app target ---------------------------
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   pod 'FirebaseFirestore',
@@ -29,7 +31,7 @@ target 'Runner' do
       :tag => '11.4.0'
 end
 
-# -------------------- Notification extension --------------
+# --------------- Notification Service Extension ---------------------
 target 'ImageNotification' do
   use_frameworks! :linkage => :static
   use_modular_headers!
@@ -37,9 +39,9 @@ target 'ImageNotification' do
   pod 'GoogleUtilities'
 end
 
-# -------------------- Post-install fixes ------------------
+# ---------------- Post-install fixes --------------------------------
 post_install do |installer|
-  # 1) All POD targets
+  # 1) All POD targets (Swift & deployment)
   installer.pods_project.targets.each do |t|
     flutter_additional_ios_build_settings(t)
     t.build_configurations.each do |c|
@@ -48,22 +50,30 @@ post_install do |installer|
     end
   end
 
-  # 2) All USER targets (Runner + extension)
+  # 2) USER targets - explicit fix for ImageNotification & Runner
   installer.aggregate_targets.each do |agg|
-    agg.user_project.targets.each do |t|
-      t.build_configurations.each do |c|
+    agg.user_project.native_targets.each do |nt|
+      %w[Runner ImageNotification].include?(nt.name) or next
+      nt.build_configurations.each do |c|
         c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-        c.build_settings['TARGETED_DEVICE_FAMILY']     = '1,2'  # iPhone & iPad
+        c.build_settings['TARGETED_DEVICE_FAMILY']     = '1,2'
       end
     end
-    # must save to persist changes
     agg.user_project.save
   end
 
-  # 3) Patch RevenueCat SubscriptionPeriod clash
-  pods_root = installer.sandbox.root
-  rc_file   = File.join(
-    pods_root,
+  # 3) Ensure extension Info.plist has MinimumOSVersion = 14.0
+  plist = File.join(__dir__, 'ImageNotification', 'Info.plist')
+  if File.exist?(plist)
+    require 'plist'
+    data = Plist.parse_xml(plist)
+    data['MinimumOSVersion'] = '14.0'
+    File.write(plist, Plist::Emit.dump(data))
+  end
+
+  # 4) Patch RevenueCat SubscriptionPeriod clash
+  rc_file = File.join(
+    installer.sandbox.root,
     'PurchasesHybridCommon', 'ios', 'PurchasesHybridCommon',
     'PurchasesHybridCommon', 'StoreProduct+HybridAdditions.swift'
   )
@@ -72,3 +82,4 @@ post_install do |installer|
     File.write(rc_file, txt.gsub(/\bSubscriptionPeriod\b/, 'RevenueCat.SubscriptionPeriod'))
   end
 end
+# --------------------------------------------------------------------
