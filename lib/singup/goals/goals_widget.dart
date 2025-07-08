@@ -1,8 +1,6 @@
-import '/flutter_flow/flutter_flow_radio_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
-import '/flutter_flow/form_field_controller.dart';
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +19,17 @@ class GoalsWidget extends StatefulWidget {
 
 class _GoalsWidgetState extends State<GoalsWidget> {
   late GoalsModel _model;
+
+  final List<String> _reasons = [
+    'Fitness',
+    'Motivation',
+    'Progress',
+    'Stress release',
+    'Health',
+    'Results',
+    'Goal',
+    'Discipline'
+  ];
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -149,70 +158,43 @@ class _GoalsWidgetState extends State<GoalsWidget> {
                         Padding(
                           padding: EdgeInsetsDirectional.fromSTEB(
                               0.0, 20.0, 0.0, 0.0),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Form(
-                                key: _model.formKey,
-                                autovalidateMode: AutovalidateMode.disabled,
-                                child: FlutterFlowRadioButton(
-                                  options: [
-                                    FFLocalizations.of(context).getText(
-                                      'w29g3np8' /* Lose weight */,
-                                    ),
-                                    FFLocalizations.of(context).getText(
-                                      '54woh1wd' /* Gain Muscle */,
-                                    ),
-                                    FFLocalizations.of(context).getText(
-                                      'h1xh116l' /* Improved Strength */,
-                                    ),
-                                    FFLocalizations.of(context).getText(
-                                      'v02xfkp4' /* Enhanced Cardiovascular Health */,
-                                    )
-                                  ].toList(),
-                                  onChanged: (val) => safeSetState(() {}),
-                                  controller:
-                                      _model.radioButtonValueController ??=
-                                          FormFieldController<String>(null),
-                                  optionHeight: 100.0,
-                                  optionWidth:
-                                      MediaQuery.sizeOf(context).width * 0.7,
-                                  textStyle: FlutterFlowTheme.of(context)
-                                      .labelMedium
-                                      .override(
-                                        fontFamily: 'Inter',
-                                        color: FlutterFlowTheme.of(context)
-                                            .tertiary,
-                                        fontSize: 20.0,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                  selectedTextStyle:
-                                      FlutterFlowTheme.of(context)
-                                          .bodyMedium
-                                          .override(
-                                            fontFamily: 'Poppins',
-                                            fontSize: functions
-                                                .resizeFontBasedOnScreenSize(
-                                                    MediaQuery.sizeOf(context)
-                                                        .width,
-                                                    15)
-                                                .toDouble(),
-                                            letterSpacing: 0.0,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                  buttonPosition: RadioButtonPosition.left,
-                                  direction: Axis.vertical,
-                                  radioButtonColor: Color(0xFF8EFF76),
-                                  inactiveRadioButtonColor:
-                                      FlutterFlowTheme.of(context).tertiary,
-                                  toggleable: false,
-                                  horizontalAlignment: WrapAlignment.start,
-                                  verticalAlignment: WrapCrossAlignment.start,
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            spacing: 8.0,
+                            runSpacing: 8.0,
+                            children: _reasons.map((reason) {
+                              final isSelected = _model.selectedReason == reason;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _model.selectedReason = reason;
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 12.0, horizontal: 20.0),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? Colors.green
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    border: Border.all(color: Colors.black12),
+                                  ),
+                                  child: Text(
+                                    reason,
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodyMedium
+                                        .override(
+                                          fontFamily: 'Poppins',
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+                            }).toList(),
                           ),
                         ),
                       ],
@@ -284,10 +266,10 @@ class _GoalsWidgetState extends State<GoalsWidget> {
                                 alignment: AlignmentDirectional(0.0, 0.0),
                                 child: FFButtonWidget(
                                   onPressed: () async {
-                                    if (_model.radioButtonValue != null &&
-                                        _model.radioButtonValue != '') {
+                                    if (_model.selectedReason != null &&
+                                        _model.selectedReason!.isNotEmpty) {
                                       FFAppState().goals =
-                                          _model.radioButtonValue!;
+                                          _model.selectedReason!;
                                       safeSetState(() {});
 
                                       context.pushNamed(MealsWidget.routeName);
